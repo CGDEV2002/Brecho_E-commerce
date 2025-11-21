@@ -1,9 +1,24 @@
+import sys
+from pathlib import Path
+
+# Adiciona o diretório raiz ao path
+root_dir = Path(__file__).parent.parent
+sys.path.append(str(root_dir))
+
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from app.database.connection import get_db
 from app.models.categoria import Categoria
+from app.routes.produtos import router as produtos_router
 
-app = FastAPI(title="Brechó E-commerce", version="1.0.0")
+app = FastAPI(
+    title="Brechó Cata Roupas - API",
+    version="1.0.0",
+    description="API completa para e-commerce de brechó",
+)
+
+# Registrar rotas
+app.include_router(produtos_router)
 
 
 @app.get("/")
