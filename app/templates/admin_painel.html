@@ -1,0 +1,377 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Header Admin -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>👑 Painel Administrativo</h1>
+            <p class="text-muted">Gerencie produtos do Brechó Cata Roupas</p>
+        </div>
+    </div>
+
+    <!-- Dashboard Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5><i class="fas fa-tshirt"></i> Total Produtos</h5>
+                    <h2 id="total-produtos">0</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5><i class="fas fa-check"></i> Disponíveis</h5>
+                    <h2 id="produtos-disponiveis">0</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5><i class="fas fa-shopping-cart"></i> Vendidos</h5>
+                    <h2 id="produtos-vendidos">0</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5><i class="fas fa-tags"></i> Categorias</h5>
+                    <h2 id="total-categorias">0</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ações Rápidas -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <button class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#modalNovoProduto">
+                <i class="fas fa-plus"></i> Novo Produto
+            </button>
+            <button onclick="carregarProdutos()" class="btn btn-outline-primary">
+                <i class="fas fa-refresh"></i> Atualizar Lista
+            </button>
+        </div>
+    </div>
+
+    <!-- Lista de Produtos -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-list"></i> Produtos Cadastrados</h5>
+                </div>
+                <div class="card-body">
+                    <div id="produtos-lista">
+                        <!-- Produtos serão carregados aqui -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Novo Produto -->
+<div class="modal fade" id="modalNovoProduto" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Novo Produto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="form-produto" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="nome" class="form-label">Nome *</label>
+                                <input type="text" class="form-control" id="nome" name="nome" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="marca" class="form-label">Marca</label>
+                                <input type="text" class="form-control" id="marca" name="marca">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="descricao" class="form-label">Descrição</label>
+                        <textarea class="form-control" id="descricao" name="descricao" rows="3"></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="categoria_id" class="form-label">Categoria *</label>
+                                <select class="form-select" id="categoria_id" name="categoria_id" required>
+                                    <option value="">Selecione...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="tamanho" class="form-label">Tamanho *</label>
+                                <select class="form-select" id="tamanho" name="tamanho" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="PP">PP</option>
+                                    <option value="P">P</option>
+                                    <option value="M">M</option>
+                                    <option value="G">G</option>
+                                    <option value="GG">GG</option>
+                                    <option value="XGG">XGG</option>
+                                    <option value="UNICO">Único</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="condicao" class="form-label">Condição *</label>
+                                <select class="form-select" id="condicao" name="condicao" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="NOVO">Novo</option>
+                                    <option value="SEMI_NOVO">Semi-novo</option>
+                                    <option value="USADO_BOM">Usado - Bom</option>
+                                    <option value="USADO_REGULAR">Usado - Regular</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="preco_original" class="form-label">Preço Original</label>
+                                <input type="number" step="0.01" class="form-control" id="preco_original" name="preco_original">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="preco_venda" class="form-label">Preço de Venda *</label>
+                                <input type="number" step="0.01" class="form-control" id="preco_venda" name="preco_venda" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="cor_principal" class="form-label">Cor Principal</label>
+                                <input type="text" class="form-control" id="cor_principal" name="cor_principal">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="material" class="form-label">Material</label>
+                                <input type="text" class="form-control" id="material" name="material">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="historia_peca" class="form-label">História da Peça</label>
+                        <textarea class="form-control" id="historia_peca" name="historia_peca" rows="2" placeholder="Conte a história desta peça..."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="imagem" class="form-label">Imagem</label>
+                        <input type="file" class="form-control" id="imagem" name="imagem" accept="image/*">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Salvar Produto
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    verificarAuth();
+    carregarDashboard();
+    carregarCategorias();
+    carregarProdutos();
+});
+
+function verificarAuth() {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+        window.location.href = '/login';
+        return;
+    }
+}
+
+function getAuthHeaders() {
+    return {
+        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+    };
+}
+
+async function carregarDashboard() {
+    try {
+        const response = await fetch('/admin/dashboard', {
+            headers: getAuthHeaders()
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById('total-produtos').textContent = data.total_produtos;
+            document.getElementById('produtos-disponiveis').textContent = data.produtos_disponiveis;
+            document.getElementById('produtos-vendidos').textContent = data.produtos_vendidos;
+            document.getElementById('total-categorias').textContent = data.total_categorias;
+        }
+    } catch (error) {
+        console.error('Erro ao carregar dashboard:', error);
+    }
+}
+
+async function carregarCategorias() {
+    try {
+        const response = await fetch('/categorias');
+        const data = await response.json();
+        
+        const select = document.getElementById('categoria_id');
+        select.innerHTML = '<option value="">Selecione...</option>';
+        
+        data.categorias.forEach(categoria => {
+            select.innerHTML += `<option value="${categoria.id}">${categoria.nome}</option>`;
+        });
+    } catch (error) {
+        console.error('Erro ao carregar categorias:', error);
+    }
+}
+
+async function carregarProdutos() {
+    try {
+        const response = await fetch('/admin/produtos', {
+            headers: getAuthHeaders()
+        });
+        
+        if (response.ok) {
+            const produtos = await response.json();
+            exibirProdutos(produtos);
+        }
+    } catch (error) {
+        console.error('Erro ao carregar produtos:', error);
+    }
+}
+
+function exibirProdutos(produtos) {
+    const container = document.getElementById('produtos-lista');
+    
+    if (produtos.length === 0) {
+        container.innerHTML = '<p class="text-center">Nenhum produto cadastrado ainda.</p>';
+        return;
+    }
+    
+    container.innerHTML = `
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Imagem</th>
+                        <th>Nome</th>
+                        <th>Categoria</th>
+                        <th>Preço</th>
+                        <th>Status</th>
+                        <th>Cadastro</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${produtos.map(produto => `
+                        <tr>
+                            <td>
+                                <img src="${produto.imagem || '/static/images/no-image.jpg'}" 
+                                     alt="${produto.nome}" style="width: 50px; height: 50px; object-fit: cover;" class="rounded">
+                            </td>
+                            <td>${produto.nome}</td>
+                            <td>${produto.categoria}</td>
+                            <td>R$ ${produto.preco_venda.toFixed(2)}</td>
+                            <td>
+                                <span class="badge ${produto.status === 'disponivel' ? 'bg-success' : 'bg-secondary'}">
+                                    ${produto.status}
+                                </span>
+                            </td>
+                            <td>${produto.created_at}</td>
+                            <td>
+                                <button onclick="editarProduto(${produto.id})" class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deletarProduto(${produto.id})" class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+// Form submit
+document.getElementById('form-produto').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    try {
+        const response = await fetch('/admin/produtos', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: formData
+        });
+        
+        if (response.ok) {
+            alert('Produto criado com sucesso!');
+            document.getElementById('modalNovoProduto').querySelector('.btn-close').click();
+            this.reset();
+            carregarProdutos();
+            carregarDashboard();
+        } else {
+            const error = await response.json();
+            alert('Erro: ' + error.detail);
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao criar produto');
+    }
+});
+
+async function deletarProduto(id) {
+    if (!confirm('Tem certeza que deseja remover este produto?')) return;
+    
+    try {
+        const response = await fetch(`/admin/produtos/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+        
+        if (response.ok) {
+            alert('Produto removido com sucesso!');
+            carregarProdutos();
+            carregarDashboard();
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao remover produto');
+    }
+}
+
+function editarProduto(id) {
+    alert('Função de edição será implementada em breve!');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-3">
+            <!-- Filtros -->
+            <div class="card">
+                <div class="card-body">
+                    <h5>🔍 Filtros</h5>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Categoria</label>
+                        <select id="filtro-categoria" class="form-select">
+                            <option value="">Todas</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Tamanho</label>
+                        <select id="filtro-tamanho" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="PP">PP</option>
+                            <option value="P">P</option>
+                            <option value="M">M</option>
+                            <option value="G">G</option>
+                            <option value="GG">GG</option>
+                            <option value="XGG">XGG</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Preço máximo</label>
+                        <input type="range" id="filtro-preco" class="form-range" min="0" max="500" value="500">
+                        <div class="d-flex justify-content-between">
+                            <small>R$ 0</small>
+                            <small id="preco-max">R$ 500</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Buscar</label>
+                        <input type="text" id="filtro-busca" class="form-control" placeholder="Nome, marca...">
+                    </div>
+                    
+                    <button onclick="aplicarFiltros()" class="btn btn-primary w-100">Aplicar Filtros</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>👗 Produtos</h2>
+                <div class="text-muted">
+                    <span id="total-produtos">0</span> produtos encontrados
+                </div>
+            </div>
+            
+            <div class="row" id="produtos-lista">
+                <!-- Produtos serão carregados aqui -->
+            </div>
+            
+            <div id="loading" class="text-center py-4 d-none">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Carregando...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let produtos = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    carregarCategorias();
+    carregarProdutos();
+    
+    // Event listeners
+    document.getElementById('filtro-preco').addEventListener('input', function() {
+        document.getElementById('preco-max').textContent = `R$ ${this.value}`;
+    });
+});
+
+async function carregarCategorias() {
+    try {
+        const response = await fetch('/categorias');
+        const data = await response.json();
+        
+        const select = document.getElementById('filtro-categoria');
+        data.categorias.forEach(categoria => {
+            select.innerHTML += `<option value="${categoria.id}">${categoria.nome}</option>`;
+        });
+    } catch (error) {
+        console.error('Erro ao carregar categorias:', error);
+    }
+}
+
+async function carregarProdutos() {
+    document.getElementById('loading').classList.remove('d-none');
+    
+    try {
+        const response = await fetch('/produtos/?limit=50');
+        produtos = await response.json();
+        
+        exibirProdutos(produtos);
+        document.getElementById('total-produtos').textContent = produtos.length;
+    } catch (error) {
+        console.error('Erro ao carregar produtos:', error);
+    } finally {
+        document.getElementById('loading').classList.add('d-none');
+    }
+}
+
+function exibirProdutos(produtosList) {
+    const container = document.getElementById('produtos-lista');
+    container.innerHTML = '';
+    
+    if (produtosList.length === 0) {
+        container.innerHTML = `
+            <div class="col-12 text-center py-5">
+                <h4>😔 Nenhum produto encontrado</h4>
+                <p>Tente ajustar os filtros ou fazer uma nova busca</p>
+            </div>
+        `;
+        return;
+    }
+    
+    produtosList.forEach(produto => {
+        const imagem = produto.imagem_principal || '/static/images/no-image.jpg';
+        const condicao = {
+            'novo': '✨ Novo',
+            'semi_novo': '🌟 Semi-novo', 
+            'usado_bom': '👍 Usado - Bom',
+            'usado_regular': '👌 Usado - Regular'
+        }[produto.condicao] || produto.condicao;
+        
+        container.innerHTML += `
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <img src="${imagem}" class="card-img-top" style="height: 250px; object-fit: cover;" alt="${produto.nome}">
+                    <div class="card-body d-flex flex-column">
+                        <h6 class="card-title">${produto.nome}</h6>
+                        <p class="card-text small text-muted">${produto.marca || ''}</p>
+                        <p class="card-text">${(produto.descricao || '').substring(0, 100)}...</p>
+                        
+                        <div class="mt-auto">
+                            <div class="mb-2">
+                                <span class="badge bg-secondary">${produto.tamanho}</span>
+                                <span class="badge bg-info">${condicao}</span>
+                            </div>
+                            
+                            ${produto.historia_peca ? `<p class="small text-muted"><i class="fas fa-heart"></i> ${produto.historia_peca.substring(0, 80)}...</p>` : ''}
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    ${produto.preco_original ? `<small class="text-muted text-decoration-line-through">R$ ${produto.preco_original.toFixed(2)}</small><br>` : ''}
+                                    <strong class="text-primary h5">R$ ${produto.preco_venda.toFixed(2)}</strong>
+                                </div>
+                                <button onclick="adicionarAoCarrinho(${produto.id})" class="btn btn-primary">
+                                    <i class="fas fa-cart-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+}
+
+function aplicarFiltros() {
+    const categoria = document.getElementById('filtro-categoria').value;
+    const tamanho = document.getElementById('filtro-tamanho').value;
+    const precoMax = parseFloat(document.getElementById('filtro-preco').value);
+    const busca = document.getElementById('filtro-busca').value.toLowerCase();
+    
+    let produtosFiltrados = produtos.filter(produto => {
+        const matchCategoria = !categoria || produto.categoria_id == categoria;
+        const matchTamanho = !tamanho || produto.tamanho === tamanho;
+        const matchPreco = produto.preco_venda <= precoMax;
+        const matchBusca = !busca || 
+            produto.nome.toLowerCase().includes(busca) ||
+            (produto.marca && produto.marca.toLowerCase().includes(busca)) ||
+            (produto.descricao && produto.descricao.toLowerCase().includes(busca));
+        
+        return matchCategoria && matchTamanho && matchPreco && matchBusca;
+    });
+    
+    exibirProdutos(produtosFiltrados);
+    document.getElementById('total-produtos').textContent = produtosFiltrados.length;
+}
+</script>
+{% endblock %}

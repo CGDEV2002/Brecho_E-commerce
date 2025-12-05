@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-8">
+            <h2>🛒 Meu Carrinho</h2>
+            
+            <div id="carrinho-items">
+                <!-- Itens serão carregados aqui -->
+            </div>
+            
+            <div id="carrinho-vazio" class="text-center py-5 d-none">
+                <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                <h4>Seu carrinho está vazio</h4>
+                <p class="text-muted">Adicione alguns produtos incríveis do nosso brechó!</p>
+                <a href="/shop" class="btn btn-primary">Ver Produtos</a>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card" id="resumo-pedido">
+                <div class="card-body">
+                    <h5 class="card-title">📋 Resumo do Pedido</h5>
+                    
+                    <div class="d-flex justify-content-between">
+                        <span>Total de itens:</span>
+                        <span id="total-itens">0</span>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between">
+                        <strong>Total:</strong>
+                        <strong class="text-primary" id="valor-total">R$ 0,00</strong>
+                    </div>
+                    
+                    <hr>
+                    
+                    <button onclick="finalizarPedido()" class="btn whatsapp-btn w-100 mb-2" id="btn-finalizar">
+                        <i class="fab fa-whatsapp"></i> Finalizar no WhatsApp
+                    </button>
+                    
+                    <button onclick="limparCarrinho()" class="btn btn-outline-danger w-100">
+                        <i class="fas fa-trash"></i> Limpar Carrinho
+                    </button>
+                    
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i> 
+                            Ao finalizar, você será direcionado para o WhatsApp para combinar entrega e pagamento.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    carregarCarrinho();
+});
+
+async function carregarCarrinho() {
+    try {
+        const [itemsResponse, totalResponse] = await Promise.all([
+            fetch('/carrinho/'),
+            fetch('/carrinho/total')
+        ]);
+        
+        const items = await itemsResponse.json();
+        const total = await totalResponse.json();
+        
+        exibirItensCarrinho(items);
+        atualizarResumo(total);
+        
+    } catch (error) {
+        console.error('Erro ao carregar carrinho:', error);
+    }
+}
+
+function exibirItensCarrinho(items) {
+    const container = document.getElementById('carrinho-items');
+    const carrinhoVazio = document.getElementById('carrinho-vazio');
+    
+    if (items.length === 0) {
+        container.classList.add('d-none');
+        carrinhoVazio.classList.remove('d-none');
+        return;
+    }
+    
+    container.classList.remove('d-none');
+    carrinhoVazio.classList.add('d-none');
+    
+    container.innerHTML = '';
+    
+    items.forEach(item => {
+        const imagem = item.imagem || '/static/images/no-image.jpg';
+        
+        container.innerHTML += `
+            <div class="card mb-3">
+                <div class="row g-0">
+                    <div class="col-md-2">
+                        <img src="${imagem}" class="img-fluid rounded-start" style="height: 100px; object-fit: cover;" alt="${item.nome}">
+                    </div>
+                    <div class="col-md-10">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="card-title">${item.nome}</h6>
+                                    <p class="text-muted mb-1">Quantidade: ${item.quantidade}</p>
+                                    <strong class="text-primary">R$ ${item.preco.toFixed(2)}</strong>
+                                </div>
+                                <button onclick="removerItem(${item.produto_id})" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+}
+
+function atualizarResumo(total) {
+    document.getElementById('total-itens').textContent = total.total_items;
+    document.getElementById('valor-total').textContent = `R$ ${total.total.toFixed(2)}`;
+    document.getElementById('carrinho-count').textContent = total.total_items;
+    
+    const btnFinalizar = document.getElementById('btn-finalizar');
+    btnFinalizar.disabled = total.total_items === 0;
+}
+
+async function removerItem(produtoId) {
+    try {
+        const response = await fetch(`/carrinho/remover/${produtoId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            carregarCarrinho(); // Recarregar carrinho
+        }
+    } catch (error) {
+        console.error('Erro ao remover item:', error);
+    }
+}
+
+async function limparCarrinho() {
+    if (!confirm('Tem certeza que deseja limpar todo o carrinho?')) return;
+    
+    try {
+        const response = await fetch('/carrinho/limpar', {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            carregarCarrinho();
+        }
+    } catch (error) {
+        console.error('Erro ao limpar carrinho:', error);
+    }
+}
+
+async function finalizarPedido() {
+    try {
+        const response = await fetch('/carrinho/whatsapp');
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Abrir WhatsApp em nova aba
+            window.open(data.whatsapp_url, '_blank');
+            
+            // Mostrar modal de confirmação
+            if (confirm('Pedido enviado para WhatsApp! Deseja limpar o carrinho?')) {
+                limparCarrinho();
+            }
+        } else {
+            alert('Erro: ' + data.detail);
+        }
+    } catch (error) {
+        console.error('Erro ao finalizar pedido:', error);
+        alert('Erro ao gerar link do WhatsApp');
+    }
+}
+</script>
+{% endblock %}

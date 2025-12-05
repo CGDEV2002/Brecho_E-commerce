@@ -30,5 +30,6 @@ logs/
 Thumbs.db
 
 # md
+md/
 *.md
 !README.md

@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Hero Section -->
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <h1 class="display-4 mb-3">🛍️ Brechó Cata Roupas</h1>
+            <p class="lead">Moda vintage e sustentável com peças únicas e cheias de história</p>
+            <a href="/shop" class="btn btn-primary btn-lg">Ver Produtos</a>
+        </div>
+    </div>
+
+    <!-- Categorias -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="mb-4">🏷️ Categorias</h2>
+            <div class="row" id="categorias">
+                <!-- Categorias serão carregadas via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Produtos em Destaque -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="mb-4">✨ Produtos em Destaque</h2>
+            <div class="row" id="produtos-destaque">
+                <!-- Produtos serão carregados via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Sobre -->
+    <div class="row">
+        <div class="col-md-8 mx-auto text-center">
+            <h2 class="mb-4">💚 Sobre o Brechó</h2>
+            <p class="lead">
+                Cada peça do nosso brechó tem uma história única. Trabalhamos com moda consciente,
+                dando nova vida às roupas e promovendo a sustentabilidade no mundo da moda.
+            </p>
+            <p>
+                <strong>🌱 Sustentável • 👗 Único • 💖 Com História</strong>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    carregarCategorias();
+    carregarProdutosDestaque();
+});
+
+async function carregarCategorias() {
+    try {
+        const response = await fetch('/categorias');
+        const data = await response.json();
+        
+        const container = document.getElementById('categorias');
+        container.innerHTML = '';
+        
+        data.categorias.forEach(categoria => {
+            container.innerHTML += `
+                <div class="col-md-3 mb-3">
+                    <div class="card h-100 text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">${categoria.nome}</h5>
+                            <p class="card-text">${categoria.descricao || ''}</p>
+                            <a href="/shop?categoria=${categoria.id}" class="btn btn-outline-primary">Ver Produtos</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    } catch (error) {
+        console.error('Erro ao carregar categorias:', error);
+    }
+}
+
+async function carregarProdutosDestaque() {
+    try {
+        const response = await fetch('/produtos/lancamentos/');
+        const produtos = await response.json();
+        
+        const container = document.getElementById('produtos-destaque');
+        container.innerHTML = '';
+        
+        produtos.slice(0, 4).forEach(produto => {
+            const imagem = produto.imagem_principal || '/static/images/no-image.jpg';
+            container.innerHTML += `
+                <div class="col-md-3 mb-4">
+                    <div class="card h-100">
+                        <img src="${imagem}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="${produto.nome}">
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title">${produto.nome}</h6>
+                            <p class="card-text small">${produto.descricao?.substring(0, 80) || ''}...</p>
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <strong class="text-primary">R$ ${produto.preco_venda.toFixed(2)}</strong>
+                                    <small class="text-muted">${produto.condicao}</small>
+                                </div>
+                                <button onclick="adicionarAoCarrinho(${produto.id})" class="btn btn-primary btn-sm w-100 mt-2">
+                                    <i class="fas fa-cart-plus"></i> Adicionar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    } catch (error) {
+        console.error('Erro ao carregar produtos:', error);
+    }
+}
+</script>
+{% endblock %}

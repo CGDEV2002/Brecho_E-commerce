@@ -25,16 +25,24 @@ from app.models import (
     CondicaoProduto,
     TamanhoProduto,
 )
-import hashlib
+from passlib.context import CryptContext
 from datetime import datetime
 
 # Criar sessão
 Session = sessionmaker(bind=engine)
 
+# Configurar hash de senha
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 
 def hash_password(password: str) -> str:
-    """Hash da senha usando SHA256 (temporário para desenvolvimento)"""
-    return hashlib.sha256(password.encode()).hexdigest()
+    """Hash da senha usando bcrypt simples"""
+    import bcrypt
+
+    # Usar bcrypt diretamente para evitar problemas de compatibilidade
+    password_bytes = password.encode("utf-8")
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password_bytes, salt).decode("utf-8")
 
 
 def create_categories():
