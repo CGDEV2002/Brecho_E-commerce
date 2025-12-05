@@ -6,7 +6,7 @@
         <div class="col-md-6 mx-auto">
             <div class="card">
                 <div class="card-body">
-                    <h3 class="text-center mb-4">🔐 Login Admin</h3>
+                    <h3 class="text-center mb-4">🔐 Acesso ao Sistema</h3>
                     
                     <form id="login-form">
                         <div class="mb-3">
@@ -28,13 +28,7 @@
                     
                     <hr class="my-4">
                     
-                    <div class="text-center">
-                        <p class="text-muted">Dados de demonstração:</p>
-                        <small>
-                            <strong>Email:</strong> admin@cataroupas.com<br>
-                            <strong>Senha:</strong> admin123
-                        </small>
-                    </div>
+                    <!-- Acesso administrativo disponível apenas para usuários autorizados -->
                 </div>
             </div>
         </div>
@@ -64,7 +58,7 @@ document.getElementById('login-form').addEventListener('submit', async function(
         
         if (response.ok) {
             localStorage.setItem('auth_token', data.access_token);
-            window.location.href = '/admin/painel';
+            window.location.href = '/sistema/gerenciamento';
         } else {
             showError(data.detail || 'Erro no login');
         }

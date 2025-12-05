@@ -43,14 +43,17 @@ poetry run uvicorn app.main:app --reload
 ```
 
 ### 5. Acessar o Sistema
-- **Site**: http://127.0.0.1:8000
-- **Admin**: http://127.0.0.1:8000/login
-- **API Docs**: http://127.0.0.1:8000/docs
+- **Site**: http://127.0.0.1:8080
+- **Admin**: http://127.0.0.1:8080/sistema/gerenciamento
+- **API Docs**: http://127.0.0.1:8080/docs
 
-## 🔐 Login Admin
+## 🔐 Acesso Administrativo
 
+**URL Discreta**: `/sistema/gerenciamento`  
 **Email**: `admin@cataroupas.com`  
 **Senha**: `admin123`
+
+> ⚠️ O painel admin não aparece na navegação pública para maior segurança
 
 ## 📱 Como Funciona o Checkout
 

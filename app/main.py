@@ -119,14 +119,15 @@ def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 
-@app.get("/admin", response_class=HTMLResponse)
-def admin_redirect():
-    return RedirectResponse(url="/login")
-
-
-@app.get("/admin/painel", response_class=HTMLResponse)
+# Rota de acesso administrativo (URL discreta)
+@app.get("/sistema/gerenciamento", response_class=HTMLResponse)
 def admin_painel(request: Request):
     return templates.TemplateResponse("admin_painel.html", {"request": request})
+
+
+@app.get("/sistema/acesso", response_class=HTMLResponse)
+def admin_login(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
 
 
 @app.get("/health")
