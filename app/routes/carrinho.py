@@ -149,7 +149,7 @@ def gerar_link_whatsapp(request: Request, db: Session = Depends(get_db)):
     mensagem_encoded = urllib.parse.quote(mensagem)
 
     # Número do WhatsApp - ALTERE AQUI PARA O NÚMERO REAL DO BRECHÓ
-    whatsapp_number = "5511999999999"  # Formato: 55 + DDD + número (sem espaços)
+    whatsapp_number = "5551992409119"  # Formato: 55 + DDD + número (sem espaços)
     whatsapp_url = f"https://wa.me/{whatsapp_number}?text={mensagem_encoded}"
 
     return {"whatsapp_url": whatsapp_url, "mensagem": mensagem, "total": total}
